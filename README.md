@@ -14,9 +14,9 @@ Also don't forget to check if your devive has certain dependencies along with Py
 - os
 - gooey (only necessary for the second file)
 
-To run the files just navigate to the folder in the command prompt/terminal/powershell then type
+To run the files just navigate to the folder in the command prompt/terminal/powershell then type for the respective files
+1)To run the first file.
 "python xml_manipulation_tool_rockwell.py"
-To run the first file.
-
+2)To run the second file.
 "python xml_manipulation_tool_rockwell_gooey.py"
-To run the second file.
+
