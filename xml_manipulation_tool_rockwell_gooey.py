@@ -1,3 +1,30 @@
+"""
+XML Manipulation Tool
+
+This Python script provides a set of functionalities to manipulate XML files commonly used in Rockwell Programmable Logic Controller (PLC) programs. The tool is designed to perform tasks such as replacing specific tags, managing bus numbers, and creating CSV files for analysis.
+
+The script uses the ElementTree library for XML parsing and provides a GUI interface and interactionx. Additionally, the script incorporates functionality to create and manipulate CSV files for storing and retrieving bus-related information.
+
+Dependencies:
+- gooey
+- xml.etree.ElementTree
+- csv
+- re
+- numpy
+- pandas
+- os
+
+Usage:
+1. Run the script and choose the desired function through a graphical user interface (GUI).
+2. Provide the source L5X/L5K file path, destination file path, and the folder path to save CSV files.
+3. Optionally, specify start and end numbers for functions that eliminate duplicate buses.
+
+Note: Make sure to close any open spreadsheet applications like Microsoft Excel before creating or modifying files.
+
+Author: Anubroto Ghose
+Date: 07/12/2023
+"""
+
 from gooey import Gooey, GooeyParser
 
 import xml.etree.ElementTree as ET
@@ -6,10 +33,13 @@ import re
 import numpy as np
 import pandas as pd
 import os
+
+# Function to parse all text tags at the root level of XML
 def parse_all_text_tags_root(xml_content):
     root = ET.fromstring(xml_content)
     return root
 
+# Function to parse all text tags within Text elements of XML
 def parse_all_text_tags_text(xml_content):
     root = ET.fromstring(xml_content)
 
@@ -19,6 +49,7 @@ def parse_all_text_tags_text(xml_content):
 
     return texts
 
+# Function to replace specific tags in a text using a replacement dictionary
 def replace_tags(text, replacement_dict):
     pattern = r'Bus\[\d+\]\.Obj'
     if re.search(pattern, text):
@@ -26,6 +57,7 @@ def replace_tags(text, replacement_dict):
             text = text.replace(key,replacement_dict[key],1)
     return text
 
+# Function to replace specific bus-related tags in a text using a replacement dictionary and a list of bus items
 def replace_bus(text, replacement_dict,lst):
     pattern = r'Bus\[\d+\]\.Obj'
     if re.search(pattern, text):
@@ -35,6 +67,7 @@ def replace_bus(text, replacement_dict,lst):
                     text = text.replace(key,replacement_dict[key],1)
     return text
 
+# Function to parse all text tags within Text elements of XML
 def parse_all_text_tags(xml_content):
     root = ET.fromstring(xml_content)
 
@@ -44,11 +77,8 @@ def parse_all_text_tags(xml_content):
 
     return texts
 
-def replace_xml_content(xml_content, bus_data, new_bus_data):
-    for i in range(len(bus_data)):
-        xml_content = xml_content.replace(str(bus_data[i][0]), (str(new_bus_data[i][0])),1)
-    return xml_content
-
+# Quicksort algorithm for sorting
+# Partition
 def partition(array, low, high):
  
     pivot = array[high]
@@ -64,7 +94,7 @@ def partition(array, low, high):
  
     return i + 1
  
- 
+# Quicksort
 def quicksort(array, low, high):
     if low < high:
         pi = partition(array, low, high)
@@ -73,12 +103,14 @@ def quicksort(array, low, high):
  
         quicksort(array, pi + 1, high)
 
+# Function to find numbers from a list of numbers that have not yet been allocated to a bus
 def unallocated_number(allocated_dict,numbers):
     for i in numbers:
         if(allocated_dict[i] == 0):
             return i
     return -1
 
+# Function to perform list bus numbers in XML to a csv file
 def bus_xml_change(source, dir_text):
     file_path = source
 
@@ -122,12 +154,12 @@ def bus_xml_change(source, dir_text):
             except FileNotFoundError:
                 print(f"Error: File '{file_name}' not found.")
             except:
-                print("The file was either not found or was being accessed through a spreadsheet software like Microsoft Excel")
+                print("Error: The files were either not found or "+file_name +" was being accessed through a spreadsheet software like Microsoft Excel")
         
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.")
 
-
+# Function to replace bus numbers in the XML content
 def bus_xml_replacement(source, dest, dir_text):
     file_path = source
     os.chdir(dir_text)
@@ -156,10 +188,12 @@ def bus_xml_replacement(source, dest, dir_text):
                     print("Change has happened in ",dest)
             except FileNotFoundError:
                 print(f"Error: File '{dest}' not found.")
-        
+            except :
+                print(f"Error: File '{dest}' not found.")
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.")
 
+# Function to list all the bus numbers with their count and respective tags
 def list_bus(source,dir_text):
     file_path = source
 
@@ -219,10 +253,11 @@ def list_bus(source,dir_text):
             except FileNotFoundError:
                 print(f"Error: File '{f1}' not found.")
             except:
-                print("The file was either not found or was being accessed through a spreadsheet software like Microsoft Excel")
+                print("Error: The file was either not found or was being accessed through a spreadsheet software like Microsoft Excel")
     except FileNotFoundError:
-        print(f"Error: File '{file_path}' not found.")
+        print(f"Error: File '{file_path}' or '{dir_text}' not found.")
 
+# Function to replace duplicated bus tags with unallocated numbers in the XML content
 def replace_bus_tags(source, dest, dir_text,start_number,end_number):
     file_path = source
     os.chdir(dir_text)
@@ -260,7 +295,6 @@ def replace_bus_tags(source, dest, dir_text,start_number,end_number):
                         og_t.append(extracted_string)
                     else:
                         print("No match found.")
-                    
                     rep_t.append(rt[i])
                 elif(count[i] > 1):
                     lst = t[i].split(",")
@@ -296,6 +330,7 @@ def replace_bus_tags(source, dest, dir_text,start_number,end_number):
     except FileNotFoundError:
         print(f"Error: File '{file_path}' or '{csv_file_path}' not found.")
 
+# Function to replace specific tags in the XML content
 def replace_tags_xml(source,dest,dir_text):
     file_path = source
     os.chdir(dir_text)
@@ -336,27 +371,160 @@ def replace_tags_xml(source,dest,dir_text):
                 xml_content = xml_content.replace(original_text,modified_text)
 
             modified_file_path = dest
+            try:
+                with open(modified_file_path, 'w',encoding = "UTF-8") as file:
+                    file.write(xml_content)
+                    print(f"XML file '{modified_file_path}' has been created with replaced tags.")
+            except:
+                print("Error: File  "+modified_file_path+" not found")
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' or '{csv_file_path}' not found.")
 
+
+#Function to find instances of a particular tag
+def num_par_tag(source,dest,dir_text,label):
+    file_path = source
+    try:
+        with open(file_path, 'r', encoding="UTF-8") as file:
+            xml_content = file.read()
+            os.chdir(dir_text)
+            f1 = os.getcwd()+"\\bus_count_with_tags.csv"
+            csv_file_path = f1
+    
+            df = pd.read_csv(csv_file_path)
+            lst = list(df['Original Tags'])
+            result_list = []
+
+            for given_string in lst:
+                extracted_strings = re.findall(r"'(.*?)'", given_string)
+                result_list.extend(extracted_strings)
+            
+            tag_dash_list = []
+            for i in result_list:
+                dash_string = i.replace("_", "-")
+                tag_dash_list.append(dash_string)
+                        
+            label_dict = {}
+            for i in tag_dash_list:
+                occurrences = xml_content.count(i)
+                label_dict[i] = occurrences
+
+            replace_replace_label_list = []
+            replace_label_list = []
+            for i in tag_dash_list:
+                if i == label:
+                    for j in range(label_dict[i]):
+                        replace_label = "type" + str(int(j+1))
+                        replace_label_list.append(replace_label)
+                        replace_replace_label = label + replace_label
+                        replace_replace_label_list.append(replace_replace_label)
+                        xml_content = xml_content.replace(label,replace_label,1)
+            
+            for i in range(len(replace_label_list)):
+                xml_content = xml_content.replace(replace_label_list[i],replace_replace_label_list[i],1)
+                print(replace_replace_label_list[i])
+            # print("Replace label")
+            # print(replace_replace_label_list[0])
+            modified_file_path = dest
             with open(modified_file_path, 'w',encoding = "UTF-8") as file:
                 file.write(xml_content)
-                print("Change has happened at "+modified_file_path)
-            
+                print("Change has happened")
             print(f"XML file '{modified_file_path}' has been created with replaced tags.")
 
     except FileNotFoundError:
         print(f"Error: File '{file_path}' or '{csv_file_path}' not found.")
+    except:
+        print(f"Error: File '{file_path}' or '{csv_file_path}' not found.")
 
+# To list all the comments under rung tags with their specific properties
+def extract_comments(source, dir_text):
+    file_path = source
+    try:
+        with open(file_path, 'r', encoding="UTF-8") as file:
+            xml_content = file.read()
+            os.chdir(dir_text)
+            # Parse the XML content
+            root = ET.fromstring(xml_content)
+            tasks_dict = {}
+
+            for task in root.findall('.//Task'):
+                task_name = task.get('Name')
+                scheduled_programs = [program.get('Name') for program in task.findall('.//ScheduledProgram')]
+                
+                tasks_dict[task_name] = scheduled_programs
+            # print(tasks_dict)
+            reverse_dict = {}
+
+            for task, programs in tasks_dict.items():
+                for program in programs:
+                    reverse_dict[program] = task
+            
+            # print(reverse_dict)
+            txt = ""
+            txt_list = []
+            c = 0
+            k = 0
+            for program in root.findall('.//Program'):
+                program_name = program.get('Name')
+                task_name = reverse_dict.get(program_name, "Program not found in any task")
+                txt = txt + f"Program: {program_name}"+ "\n"
+
+                for routine in program.findall('.//Routine'):
+                    routine_name = routine.get('Name')
+                    txt = txt + f"  Routine: {routine_name}"+"\n"
+
+                    for rung in routine.findall('.//Rung'):
+                        comment_element = rung.find('.//Comment/LocalizedComment')
+                        if comment_element is not None:
+                            comment_text = comment_element.text.strip()
+                            c+=1
+                            txt = txt + f"      Task Name: {task_name}, Routine Name: {routine_name},  Rung Number:{rung.get('Number')}, Rung Type: {rung.get('Type')}, Comment Lang: {comment_element.attrib.get('Lang')}:, Comment:\n            {comment_text}" + "\n"
+                            lst = [task_name, program_name, routine_name,rung.get('Number'),rung.get('Type'),comment_element.attrib.get('Lang'),comment_text]
+                            txt_list.append(lst)
+                        else:
+                            k+=1
+                            txt = txt + f"      Task Name: {task_name}, Routine Name: {routine_name},  Rung Number:{rung.get('Number')}, Rung Type: {rung.get('Type')}, Comment Lang: No Language, Comment: No comment" + "\n"
+                            lst = [task_name, program_name, routine_name, rung.get('Number'),rung.get('Type'),"No Language", "No Comment"]
+                            txt_list.append(lst)
+            
+            modified_file_path = os.getcwd()+"\\extracted_comments_under_rungs.txt"
+            print("Total Number of rungs which have a comment = ",c)
+            print("Total Number of rungs which do not have a comment = ",k)
+            print("Total Number of rungs = ",k+c)
+            with open(modified_file_path, 'w',encoding = "UTF-8") as file:
+                file.write(txt)
+                print("Change has happened")
+            print(f"XML file '{modified_file_path}' has been created with replaced tags.")
+
+
+
+            modified_file_path = os.getcwd()+"\\extracted_comments_under_rungs.csv"
+            with open(modified_file_path, 'w',encoding = "UTF-8") as file:
+                writer = csv.writer(file)
+
+                writer.writerows([["Task Name","Program Name", "Routine Name", "Rung Number", "Rung Type", "Language", "Comment"]])
+                writer.writerows(txt_list)
+
+                print("Change has happened")
+            print(f"XML file '{modified_file_path}' has been created with replaced tags.")
+
+    except:
+        print("Error: The Source file or folder paths are not found")
+
+# Function to List the functions
 def printOptionsText():
     return [
-        "To list the tags with respective bus tags to either replace tags or to remove duplicate buses in csv",
+        "List tags with corresponding bus object numbers for tag replacement or removal of duplicate buses in bus_count_with_tags.csv",
         "To replace tags", 
         "To remove duplicate buses and replace them with the respective numbers available in the array",
-        "To create the bus list to change bus names",
-        "To replace bus numbers in the list"
+        "To find instances of a particular tag/label.",
+        "To list all the comments under rung tags.",
+        "List the bus numbers in the bus_list_numbers.csv file for facilitating bus object number changes",
+        "To replace bus object numbers in the xml file"
     ]
 
-
-@Gooey(program_name="XML Manipulation Tool",default_size = (1200, 700))
+# main program
+@Gooey(program_name="XML Manipulation Tool",default_size=(1455, 630))
 def main():
     parser = GooeyParser(description="Manipulating Rockwell XML files")
     lst = printOptionsText()
@@ -405,6 +573,14 @@ def main():
         metavar = "End Number",
         )
     
+
+    parser.add_argument(
+        "--label", 
+        action = "store",
+        help = "Enter the label to find its number of instances",
+        metavar = "Label",
+        )
+
     args = parser.parse_args()
     
     source = args.source
@@ -413,24 +589,30 @@ def main():
     ch = args.option
     start_number = args.start_number
     end_number = args.end_number
+    label = args.label
 
-    
-    if ch == lst[0]:
-        list_bus(source,dir_text)
-    elif ch == lst[1]:
-        replace_tags_xml(source,dest,dir_text)
-    elif ch == lst[2]:
-        try:
-            replace_bus_tags(source,dest,dir_text,int(start_number),int(end_number))
-        except ValueError or TypeError:
-            print("Incorrect Input in case of start and end numbers\nGo to Edit and Type the correct values")
-        except TypeError:
-            print("Blank Input\nGo to Edit and the correct values")
-    elif ch == lst[3]:
-        bus_xml_change(source,dir_text)
-    elif ch == lst[4]:
-        bus_xml_replacement(source,dest,dir_text)
-
+    try:
+        if ch == lst[0]:
+            list_bus(source,dir_text)
+        elif ch == lst[1]:
+            replace_tags_xml(source,dest,dir_text)
+        elif ch == lst[2]:
+            try:
+                replace_bus_tags(source,dest,dir_text,int(start_number),int(end_number))
+            except ValueError or TypeError:
+                print("Error: Incorrect Input in case of start and end numbers\nGo to Edit and Type the correct values")
+            except TypeError:
+                print("Error: Blank Input\nGo to Edit and fill the values of start and end number")
+        elif ch == lst[3]:
+            num_par_tag(source,dest,dir_text,label)
+        elif ch == lst[4]:
+            extract_comments(source,dir_text)
+        elif ch == lst[5]:
+            bus_xml_change(source,dir_text)
+        elif ch == lst[6]:
+            bus_xml_replacement(source,dest,dir_text)
+    except:
+        print("Error:\tEnter Correct File or Folder Paths")
 
 if __name__ == "__main__":
     main()
